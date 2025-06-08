@@ -24,6 +24,13 @@ EXCEL_TEMPLATE_NAME = "stock_template.xlsx"
 EXCEL_BACKUP_PREFIX = "backup_"
 MAX_BACKUP_FILES = 10
 
+# Excel file paths (for compatibility)
+EXCEL_FILE_PATH = DATA_DIR / "uploads" / "stock_report.xlsx"
+
+EXCEL_FILE = DATA_DIR / "uploads" / "stock_report.xlsx"
+
+STOCK_FILE = DATA_DIR / "stock_data.xlsx"
+
 # Sheet Names (matching your current Excel structure)
 SHEET_NAMES = {
     "STOCK": "stock sheet",
@@ -54,23 +61,151 @@ DEFAULT_PRODUCTS = {
     }
 }
 
-# Sales Channels
-SALES_CHANNELS = {
+# ================================
+# MISSING ATTRIBUTES - ADDED FOR COMPATIBILITY
+# ================================
+
+# Product weights (extracted from your DEFAULT_PRODUCTS)
+PRODUCT_WEIGHTS = [0.2, 0.5, 1.0, 1.5, 2.0]
+
+# Add this after PRODUCT_WEIGHTS = [0.2, 0.5, 1.0, 1.5, 2.0]
+
+PRODUCT_DETAILS = {
+    0.2: {
+        'pouch_size': '6*9',
+        'fnsku': 'X00289LA0X'
+    },
+    0.5: {
+        'pouch_size': '7*10',
+        'fnsku': 'X00289J14Z'
+    },
+    1.0: {
+        'pouch_size': '9*12',
+        'fnsku': 'X00289HWX7'
+    },
+    1.5: {
+        'pouch_size': '11*16',
+        'fnsku': 'X00289LA0N'
+    },
+    2.0: {
+        'pouch_size': '11*16',
+        'fnsku': 'X00289L9ZT'
+    }
+}
+
+
+
+# Sales channels (expanded from your SALES_CHANNELS)
+SALES_CHANNELS = [
+    "Amazon FBA",
+    "Amazon Easyship", 
+    "Flipkart",
+    "Others",
+    "Direct Sales",
+    "Retail",
+    "Wholesale"
+]
+
+# Logging level (will be defined properly after LOGGING_CONFIG)
+LOG_LEVEL = "INFO"
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+LOG_FILE = "logs/app.log"
+
+# Additional commonly expected attributes
+DEBUG = True
+APP_PORT = 8501
+MAX_FILE_SIZE_MB = 10
+ALLOWED_FILE_TYPES = [".xlsx", ".xls", ".csv"]
+
+# Business rules
+MIN_PRICE = 0.01
+MAX_PRICE = 10000.00
+DEFAULT_REORDER_LEVEL = 50
+
+# Date formats
+DATE_FORMAT = "%Y-%m-%d"
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+# Currency
+CURRENCY_SYMBOL = "₹"
+CURRENCY_CODE = "INR"
+
+# UI colors (extracted from UI_CONFIG for direct access)
+PRIMARY_COLOR = "#FF4B4B"
+BACKGROUND_COLOR = "#FFFFFF"
+SECONDARY_BACKGROUND_COLOR = "#F0F2F6"
+TEXT_COLOR = "#262730"
+
+# Chart settings
+CHART_HEIGHT = 400
+CHART_WIDTH = 600
+
+# Page settings
+PAGE_TITLE = "Inventory Management System"
+PAGE_ICON = "📦"
+LAYOUT = "wide"
+
+# Stock limits
+MAX_STOCK_LIMIT = 10000
+MIN_STOCK_THRESHOLD = 10
+
+# Validation rules (expanded)
+VALIDATION_RULES = {
+    "MIN_STOCK": 0,
+    "MAX_STOCK": 10000,
+    "MIN_WEIGHT": 0.1,
+    "MAX_WEIGHT": 5.0,
+    "REQUIRED_FIELDS": ["product_name", "weight", "quantity"],
+    # Additional validation rules
+    "product_name": {
+        "required": True,
+        "min_length": 2,
+        "max_length": 50,
+        "pattern": r"^[\d\.]+kg$"
+    },
+    "quantity": {
+        "required": True,
+        "min_value": 0,
+        "max_value": 10000,
+        "type": "number"
+    },
+    "price": {
+        "required": True,
+        "min_value": 0.01,
+        "max_value": 10000.00,
+        "type": "number"
+    },
+    "supplier_name": {
+        "required": True,
+        "min_length": 2,
+        "max_length": 100
+    },
+    "batch_number": {
+        "required": True,
+        "pattern": r"^BATCH-\d{8}-\d{1,3}$"
+    },
+    "order_id": {
+        "required": False,
+        "pattern": r"^[A-Za-z0-9\-]{5,20}$"
+    },
+    "invoice_number": {
+        "required": False,
+        "pattern": r"^[A-Za-z0-9\-/]{3,20}$"
+    }
+}
+
+# ================================
+# ORIGINAL CONFIGURATION CONTINUES
+# ================================
+
+# Sales Channels (original structure preserved)
+SALES_CHANNELS_DICT = {
     "AMAZON": {
         "FBA": "Amazon FBA",
         "EASYSHIP": "Amazon Easyship"
     },
     "FLIPKART": "Flipkart",
     "OTHERS": "Others"
-}
-
-# Data Validation Rules
-VALIDATION_RULES = {
-    "MIN_STOCK": 0,
-    "MAX_STOCK": 10000,
-    "MIN_WEIGHT": 0.1,
-    "MAX_WEIGHT": 5.0,
-    "REQUIRED_FIELDS": ["product_name", "weight", "quantity"]
 }
 
 # Dashboard Configuration
@@ -141,8 +276,13 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 if ENVIRONMENT == "production":
     LOGGING_CONFIG["LEVEL"] = "WARNING"
+    LOG_LEVEL = "WARNING"  # Update the compatibility variable too
     BACKUP_CONFIG["BACKUP_CLOUD"] = True
     SECURITY_CONFIG["ENABLE_AUTH"] = True
+else:
+    # Set LOG_LEVEL from LOGGING_CONFIG for development
+    LOG_LEVEL = LOGGING_CONFIG["LEVEL"]
+    LOG_FORMAT = LOGGING_CONFIG["FORMAT"]
 
 # Create directories if they don't exist
 for directory in [DATA_DIR, TEMPLATES_DIR, UPLOADS_DIR, EXPORTS_DIR, LOGS_DIR]:

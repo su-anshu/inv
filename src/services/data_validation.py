@@ -284,8 +284,13 @@ class DataValidator:
             return False
         
         # Check if product matches our weight format (e.g., "1.0kg", "0.5kg")
-        valid_products = [f"{w}kg" for w in config.PRODUCT_WEIGHTS]
-        return product.strip() in valid_products
+        try:
+            valid_products = [f"{w}kg" for w in config.PRODUCT_WEIGHTS]
+            return product.strip() in valid_products
+        except:
+            # Fallback validation if config not available
+            pattern = r'^\d+(\.\d+)?kg$'
+            return bool(re.match(pattern, product.strip()))
     
     def _validate_quantity(self, quantity: Any) -> bool:
         """Validate quantity value"""
@@ -299,7 +304,8 @@ class DataValidator:
         """Validate stock quantity (can be 0)"""
         try:
             qty = float(quantity)
-            return qty >= 0 and qty <= config.MAX_STOCK_LIMIT
+            max_limit = getattr(config, 'MAX_STOCK_LIMIT', 100000)  # Default if config not available
+            return qty >= 0 and qty <= max_limit
         except:
             return False
     
@@ -321,7 +327,12 @@ class DataValidator:
     
     def _validate_sales_channel(self, channel: str) -> bool:
         """Validate sales channel"""
-        return channel in config.SALES_CHANNELS
+        try:
+            return channel in config.SALES_CHANNELS
+        except:
+            # Fallback validation if config not available
+            default_channels = ['Online', 'Retail', 'Wholesale', 'Amazon', 'Flipkart']
+            return channel in default_channels
     
     def _validate_order_id(self, order_id: str) -> bool:
         """Validate order ID format"""
@@ -329,7 +340,7 @@ class DataValidator:
             return False
         
         # Basic format validation - alphanumeric with hyphens, 5-20 characters
-        pattern = r'^[A-Za-z0-9\-]{5,20}
+        pattern = r'^[A-Za-z0-9\-]{5,20}$'
         return bool(re.match(pattern, order_id))
     
     def _validate_supplier_name(self, supplier: str) -> bool:
@@ -344,7 +355,7 @@ class DataValidator:
             return False
         
         # Basic format validation - alphanumeric with hyphens/slashes, 3-20 characters
-        pattern = r'^[A-Za-z0-9\-/]{3,20}
+        pattern = r'^[A-Za-z0-9\-/]{3,20}$'
         return bool(re.match(pattern, invoice))
     
     def _validate_batch_number(self, batch: str) -> bool:
@@ -353,7 +364,7 @@ class DataValidator:
             return False
         
         # Basic format validation - typically BATCH-YYYYMMDD-XXX format
-        pattern = r'^BATCH-\d{8}-\d{1,3}
+        pattern = r'^BATCH-\d{8}-\d{1,3}$'
         return bool(re.match(pattern, batch))
     
     def validate_file_upload(self, file_content: bytes, file_type: str) -> Tuple[bool, List[str]]:

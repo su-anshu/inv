@@ -7,6 +7,8 @@ import pandas as pd
 from datetime import datetime, date
 from typing import Dict, List, Any, Optional
 import config
+from src.models import Product, ProductCatalog  # <- ADD THIS LINE
+
 
 def show_product_management():
     """Product management interface"""

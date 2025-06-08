@@ -1,430 +1,582 @@
 """
-Download Center Components - File generation and download functionality
+Download Center Component - Handle all data exports and downloads
 """
 
 import streamlit as st
 import pandas as pd
+import io
 from datetime import datetime, date, timedelta
 import config
 from src.services.excel_service import ExcelService
-import io
+import plotly.express as px
+import plotly.graph_objects as go
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+import base64
 
-def show_report_downloads():
-    """Show report download options"""
+class DownloadCenter:
+    """Handle all download and export functionality"""
     
-    st.subheader("📊 Generate Reports")
+    def __init__(self):
+        self.excel_service = ExcelService()
     
-    # Report type selection
-    col1, col2 = st.columns(2)
+    def show_download_interface(self):
+        """Display the download center interface"""
+        
+        st.header("📥 Download Center")
+        st.markdown("Export your data in various formats")
+        
+        # Download options tabs
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "📊 Excel Reports",
+            "📋 CSV Exports", 
+            "📄 PDF Reports",
+            "📈 Chart Exports"
+        ])
+        
+        with tab1:
+            self.show_excel_downloads()
+        
+        with tab2:
+            self.show_csv_downloads()
+        
+        with tab3:
+            self.show_pdf_downloads()
+        
+        with tab4:
+            self.show_chart_downloads()
     
-    with col1:
-        report_type = st.selectbox(
-            "Report Type",
-            [
-                "Stock Summary Report",
-                "Sales Report", 
-                "Purchase Report",
-                "Production Report",
-                "Financial Summary",
-                "Low Stock Alert Report"
-            ]
-        )
-    
-    with col2:
-        date_range = st.selectbox(
-            "Date Range",
-            ["Today", "Last 7 Days", "Last 30 Days", "This Month", "Custom Range"]
-        )
-    
-    # Custom date range
-    if date_range == "Custom Range":
+    def show_excel_downloads(self):
+        """Excel export options"""
+        
+        st.subheader("📊 Excel Reports")
+        
         col1, col2 = st.columns(2)
+        
         with col1:
-            start_date = st.date_input("Start Date", value=date.today() - timedelta(days=30))
+            st.markdown("#### Stock Reports")
+            
+            if st.button("📦 Current Stock Report", use_container_width=True):
+                stock_data = self.get_stock_data()
+                excel_buffer = self.create_excel_report(stock_data, "Stock Report")
+                st.download_button(
+                    label="⬇️ Download Stock Report",
+                    data=excel_buffer,
+                    file_name=f"stock_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            
+            if st.button("⚠️ Low Stock Alert Report", use_container_width=True):
+                low_stock_data = self.get_low_stock_data()
+                excel_buffer = self.create_excel_report(low_stock_data, "Low Stock Alert")
+                st.download_button(
+                    label="⬇️ Download Low Stock Report",
+                    data=excel_buffer,
+                    file_name=f"low_stock_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            
+            if st.button("💰 Stock Valuation Report", use_container_width=True):
+                valuation_data = self.get_stock_valuation_data()
+                excel_buffer = self.create_excel_report(valuation_data, "Stock Valuation")
+                st.download_button(
+                    label="⬇️ Download Valuation Report",
+                    data=excel_buffer,
+                    file_name=f"stock_valuation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+        
         with col2:
-            end_date = st.date_input("End Date", value=date.today())
-    else:
-        start_date, end_date = get_date_range(date_range)
-    
-    # Format selection
-    export_format = st.selectbox(
-        "Export Format",
-        ["Excel (.xlsx)", "CSV (.csv)", "PDF (.pdf)"]
-    )
-    
-    # Generate report button
-    if st.button("📊 Generate Report", use_container_width=True):
-        with st.spinner("Generating report..."):
-            report_data = generate_report_data(report_type, start_date, end_date)
+            st.markdown("#### Sales & Transaction Reports")
             
-            if report_data is not None:
-                # Create download based on format
-                if export_format == "Excel (.xlsx)":
-                    excel_file = create_excel_report(report_data, report_type)
-                    st.download_button(
-                        label="📥 Download Excel Report",
-                        data=excel_file,
-                        file_name=f"{report_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True
-                    )
-                
-                elif export_format == "CSV (.csv)":
-                    csv_file = create_csv_report(report_data)
-                    st.download_button(
-                        label="📥 Download CSV Report", 
-                        data=csv_file,
-                        file_name=f"{report_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                        mime="text/csv",
-                        use_container_width=True
-                    )
-                
-                elif export_format == "PDF (.pdf)":
-                    st.info("📄 PDF generation coming soon!")
-                
-                # Show preview
-                st.markdown("### 👀 Report Preview")
-                st.dataframe(report_data.head(20), use_container_width=True)
-                
-                st.success(f"✅ {report_type} generated successfully!")
-            else:
-                st.error("❌ No data available for the selected criteria")
-
-def show_backup_downloads():
-    """Show backup file downloads"""
-    
-    st.subheader("💾 Backup Files")
-    
-    try:
-        from src.services.backup_service import BackupService
-        backup_service = BackupService()
-        
-        # List available backups
-        backups = backup_service.list_backups()
-        
-        if backups:
-            st.write(f"Found {len(backups)} backup files:")
+            # Date range selector
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input("Start Date", value=date.today() - timedelta(days=30))
+            with col2:
+                end_date = st.date_input("End Date", value=date.today())
             
-            for backup in backups[:10]:  # Show latest 10 backups
-                col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
-                
+            if st.button("💳 Sales Report", use_container_width=True):
+                sales_data = self.get_sales_data(start_date, end_date)
+                excel_buffer = self.create_excel_report(sales_data, "Sales Report")
+                st.download_button(
+                    label="⬇️ Download Sales Report",
+                    data=excel_buffer,
+                    file_name=f"sales_report_{start_date}_{end_date}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            
+            if st.button("📦 Purchase Report", use_container_width=True):
+                purchase_data = self.get_purchase_data(start_date, end_date)
+                excel_buffer = self.create_excel_report(purchase_data, "Purchase Report")
+                st.download_button(
+                    label="⬇️ Download Purchase Report",
+                    data=excel_buffer,
+                    file_name=f"purchase_report_{start_date}_{end_date}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            
+            if st.button("🏭 Production Report", use_container_width=True):
+                production_data = self.get_production_data(start_date, end_date)
+                excel_buffer = self.create_excel_report(production_data, "Production Report")
+                st.download_button(
+                    label="⬇️ Download Production Report",
+                    data=excel_buffer,
+                    file_name=f"production_report_{start_date}_{end_date}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+    
+    def show_csv_downloads(self):
+        """CSV export options"""
+        
+        st.subheader("📋 CSV Data Exports")
+        st.markdown("Download raw data in CSV format for further analysis")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("#### Stock Data")
+            
+            if st.button("📦 Stock Data CSV", use_container_width=True):
+                stock_data = self.get_stock_data()
+                csv_data = stock_data.to_csv(index=False)
+                st.download_button(
+                    label="⬇️ Download Stock CSV",
+                    data=csv_data,
+                    file_name=f"stock_data_{datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+        
+        with col2:
+            st.markdown("#### Sales Data")
+            
+            if st.button("💳 Sales Data CSV", use_container_width=True):
+                sales_data = self.get_sales_data()
+                csv_data = sales_data.to_csv(index=False)
+                st.download_button(
+                    label="⬇️ Download Sales CSV",
+                    data=csv_data,
+                    file_name=f"sales_data_{datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+        
+        with col3:
+            st.markdown("#### Purchase Data")
+            
+            if st.button("📦 Purchase Data CSV", use_container_width=True):
+                purchase_data = self.get_purchase_data()
+                csv_data = purchase_data.to_csv(index=False)
+                st.download_button(
+                    label="⬇️ Download Purchase CSV",
+                    data=csv_data,
+                    file_name=f"purchase_data_{datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+    
+    def show_pdf_downloads(self):
+        """PDF report options"""
+        
+        st.subheader("📄 PDF Reports")
+        st.markdown("Generate professional PDF reports")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### Standard Reports")
+            
+            if st.button("📊 Stock Summary PDF", use_container_width=True):
+                pdf_buffer = self.create_stock_summary_pdf()
+                st.download_button(
+                    label="⬇️ Download Stock Summary PDF",
+                    data=pdf_buffer,
+                    file_name=f"stock_summary_{datetime.now().strftime('%Y%m%d')}.pdf",
+                    mime="application/pdf"
+                )
+            
+            if st.button("💰 Financial Summary PDF", use_container_width=True):
+                pdf_buffer = self.create_financial_summary_pdf()
+                st.download_button(
+                    label="⬇️ Download Financial Summary PDF",
+                    data=pdf_buffer,
+                    file_name=f"financial_summary_{datetime.now().strftime('%Y%m%d')}.pdf",
+                    mime="application/pdf"
+                )
+        
+        with col2:
+            st.markdown("#### Custom Reports")
+            
+            report_type = st.selectbox(
+                "Select Report Type",
+                ["Stock Analysis", "Sales Performance", "Purchase Analysis", "Production Summary"]
+            )
+            
+            date_range = st.selectbox(
+                "Date Range",
+                ["Last 7 Days", "Last 30 Days", "Last 90 Days", "Custom"]
+            )
+            
+            if date_range == "Custom":
+                col1, col2 = st.columns(2)
                 with col1:
-                    st.write(f"**{backup['filename']}**")
-                
+                    custom_start = st.date_input("Start Date")
                 with col2:
-                    st.write(f"{backup['size_mb']:.1f} MB")
-                
-                with col3:
-                    st.write(backup['created'].strftime("%Y-%m-%d %H:%M"))
-                
-                with col4:
-                    # Download button for each backup
-                    backup_path = config.EXPORTS_DIR / backup['filename']
-                    if backup_path.exists():
-                        with open(backup_path, 'rb') as f:
-                            st.download_button(
-                                "📥",
-                                data=f.read(),
-                                file_name=backup['filename'],
-                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                key=f"backup_{backup['filename']}"
-                            )
-        else:
-            st.info("No backup files found")
+                    custom_end = st.date_input("End Date")
             
-            if st.button("🔄 Create Backup Now"):
-                success = backup_service.create_manual_backup()
-                if success:
-                    st.success("✅ Backup created successfully!")
-                    st.rerun()
-                else:
-                    st.error("❌ Backup creation failed")
+            if st.button("📄 Generate Custom PDF", use_container_width=True):
+                pdf_buffer = self.create_custom_pdf_report(report_type, date_range)
+                st.download_button(
+                    label="⬇️ Download Custom Report PDF",
+                    data=pdf_buffer,
+                    file_name=f"custom_report_{datetime.now().strftime('%Y%m%d')}.pdf",
+                    mime="application/pdf"
+                )
     
-    except Exception as e:
-        st.error(f"❌ Error accessing backups: {str(e)}")
-
-def show_template_downloads():
-    """Show template file downloads"""
-    
-    st.subheader("📄 Download Templates")
-    st.info("Download templates for bulk data import")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### Data Entry Templates")
+    def show_chart_downloads(self):
+        """Chart export options"""
         
-        # Sales template
-        if st.button("🛒 Sales Template", use_container_width=True):
-            template_data = create_sales_template()
-            csv = template_data.to_csv(index=False)
-            st.download_button(
-                "📥 Download Sales Template",
-                data=csv,
-                file_name="sales_template.csv",
-                mime="text/csv"
-            )
+        st.subheader("📈 Chart Exports")
+        st.markdown("Download charts and visualizations")
         
-        # Purchase template
-        if st.button("📦 Purchase Template", use_container_width=True):
-            template_data = create_purchase_template()
-            csv = template_data.to_csv(index=False)
-            st.download_button(
-                "📥 Download Purchase Template",
-                data=csv,
-                file_name="purchase_template.csv",
-                mime="text/csv"
-            )
-    
-    with col2:
-        st.markdown("#### Inventory Templates")
+        col1, col2 = st.columns(2)
         
-        # Stock template
-        if st.button("📊 Stock Template", use_container_width=True):
-            template_data = create_stock_template()
-            csv = template_data.to_csv(index=False)
-            st.download_button(
-                "📥 Download Stock Template",
-                data=csv,
-                file_name="stock_template.csv",
-                mime="text/csv"
-            )
+        with col1:
+            st.markdown("#### Stock Charts")
+            
+            # Generate sample chart
+            stock_data = self.get_stock_data()
+            fig = px.bar(stock_data, x='Product', y='Current_Stock', title='Current Stock Levels')
+            st.plotly_chart(fig, use_container_width=True)
+            
+            chart_format = st.selectbox("Chart Format", ["PNG", "JPG", "SVG", "PDF"])
+            
+            if st.button("📊 Download Stock Chart", use_container_width=True):
+                img_buffer = self.export_chart(fig, chart_format.lower())
+                st.download_button(
+                    label=f"⬇️ Download Chart as {chart_format}",
+                    data=img_buffer,
+                    file_name=f"stock_chart_{datetime.now().strftime('%Y%m%d')}.{chart_format.lower()}",
+                    mime=f"image/{chart_format.lower()}"
+                )
         
-        # Production template
-        if st.button("🏭 Production Template", use_container_width=True):
-            template_data = create_production_template()
-            csv = template_data.to_csv(index=False)
-            st.download_button(
-                "📥 Download Production Template", 
-                data=csv,
-                file_name="production_template.csv",
-                mime="text/csv"
-            )
-
-def get_date_range(range_type):
-    """Get start and end dates based on range type"""
+        with col2:
+            st.markdown("#### Sales Charts")
+            
+            # Generate sample sales chart
+            sales_data = self.get_sales_data()
+            fig2 = px.line(sales_data, x='Date', y='Revenue', title='Sales Revenue Trend')
+            st.plotly_chart(fig2, use_container_width=True)
+            
+            if st.button("📈 Download Sales Chart", use_container_width=True):
+                img_buffer = self.export_chart(fig2, chart_format.lower())
+                st.download_button(
+                    label=f"⬇️ Download Chart as {chart_format}",
+                    data=img_buffer,
+                    file_name=f"sales_chart_{datetime.now().strftime('%Y%m%d')}.{chart_format.lower()}",
+                    mime=f"image/{chart_format.lower()}"
+                )
     
-    today = date.today()
+    # Data retrieval methods
     
-    if range_type == "Today":
-        return today, today
-    elif range_type == "Last 7 Days":
-        return today - timedelta(days=7), today
-    elif range_type == "Last 30 Days":
-        return today - timedelta(days=30), today
-    elif range_type == "This Month":
-        return today.replace(day=1), today
-    else:
-        return today - timedelta(days=30), today
-
-def generate_report_data(report_type, start_date, end_date):
-    """Generate report data based on type and date range"""
-    
-    try:
-        excel_service = ExcelService()
+    def get_stock_data(self):
+        """Get current stock data"""
+        try:
+            # Try to get real data from Excel service
+            real_data = self.excel_service.read_stock_data()
+            if real_data is not None and not real_data.empty:
+                return real_data
+        except:
+            pass
         
-        if report_type == "Stock Summary Report":
-            return generate_stock_summary_report(excel_service)
-        elif report_type == "Sales Report":
-            return generate_sales_report(excel_service, start_date, end_date)
-        elif report_type == "Purchase Report":
-            return generate_purchase_report(excel_service, start_date, end_date)
-        elif report_type == "Production Report":
-            return generate_production_report(excel_service, start_date, end_date)
-        elif report_type == "Financial Summary":
-            return generate_financial_summary(excel_service, start_date, end_date)
-        elif report_type == "Low Stock Alert Report":
-            return generate_low_stock_report(excel_service)
-    except Exception as e:
-        st.error(f"Error generating report: {str(e)}")
-        return None
-
-def generate_stock_summary_report(excel_service):
-    """Generate stock summary report"""
+        # Return sample data if real data not available
+        quantities = [45, 120, 85, 30, 95]
+        return pd.DataFrame({
+            'Product': [f'{w}kg' for w in config.PRODUCT_WEIGHTS],
+            'Current_Stock': quantities,
+            'Min_Stock': [50, 100, 80, 40, 80],
+            'Max_Stock': [200, 300, 250, 150, 250],
+            'Unit_Price': [w * 50 for w in config.PRODUCT_WEIGHTS],
+            'Total_Value': [q * w * 50 for q, w in zip(quantities, config.PRODUCT_WEIGHTS)],
+            'Last_Updated': [datetime.now().strftime('%Y-%m-%d')] * len(config.PRODUCT_WEIGHTS)
+        })
     
-    # Sample data - replace with actual Excel data
-    stock_data = pd.DataFrame({
-        'Product': [f'{w}kg Roasted Chana' for w in config.PRODUCT_WEIGHTS],
-        'Current_Stock': [45, 120, 85, 30, 95],
-        'Min_Stock': [50, 100, 80, 40, 80],
-        'Max_Stock': [200, 300, 250, 150, 250],
-        'Unit_Price': [w * 50 for w in config.PRODUCT_WEIGHTS],
-        'Total_Value': [45*w*50, 120*w*50, 85*w*50, 30*w*50, 95*w*50 for w in config.PRODUCT_WEIGHTS],
-        'Status': ['Low' if stock < min_stock else 'OK' for stock, min_stock in zip([45, 120, 85, 30, 95], [50, 100, 80, 40, 80])],
-        'Last_Updated': [datetime.now().strftime('%Y-%m-%d %H:%M')] * len(config.PRODUCT_WEIGHTS)
-    })
+    def get_low_stock_data(self):
+        """Get low stock items"""
+        stock_data = self.get_stock_data()
+        return stock_data[stock_data['Current_Stock'] < stock_data['Min_Stock']]
     
-    return stock_data
-
-def generate_sales_report(excel_service, start_date, end_date):
-    """Generate sales report for date range"""
+    def get_stock_valuation_data(self):
+        """Get stock valuation data"""
+        stock_data = self.get_stock_data()
+        total_value = stock_data['Total_Value'].sum()
+        
+        valuation = stock_data.copy()
+        valuation['Percentage'] = (valuation['Total_Value'] / total_value * 100).round(2)
+        valuation['Category'] = ['Fast Moving' if stock > min_stock else 'Slow Moving' 
+                               for stock, min_stock in zip(valuation['Current_Stock'], valuation['Min_Stock'])]
+        
+        return valuation
     
-    # Sample data - replace with actual Excel data
-    dates = pd.date_range(start=start_date, end=end_date, freq='D')
-    sales_data = []
-    
-    for date in dates:
-        for weight in config.PRODUCT_WEIGHTS:
-            if pd.np.random.random() > 0.3:  # Random sales occurrence
-                sales_data.append({
-                    'Date': date.strftime('%Y-%m-%d'),
-                    'Product': f'{weight}kg Roasted Chana',
-                    'Quantity': pd.np.random.randint(1, 20),
-                    'Unit_Price': weight * 50,
-                    'Channel': pd.np.random.choice(config.SALES_CHANNELS),
-                    'Order_ID': f'ORD-{pd.np.random.randint(100000, 999999)}',
-                    'Total_Amount': pd.np.random.randint(1, 20) * weight * 50
+    def get_sales_data(self, start_date=None, end_date=None):
+        """Get sales data for specified date range"""
+        import numpy as np
+        
+        if start_date is None:
+            start_date = date.today() - timedelta(days=30)
+        if end_date is None:
+            end_date = date.today()
+        
+        # Generate sample sales data
+        dates = pd.date_range(start=start_date, end=end_date, freq='D')
+        data = []
+        
+        for date_val in dates:
+            for _ in range(np.random.randint(1, 5)):  # 1-4 sales per day
+                weight = np.random.choice(config.PRODUCT_WEIGHTS)
+                quantity = np.random.randint(1, 15)
+                unit_price = weight * 50 + np.random.randint(-5, 15)
+                
+                data.append({
+                    'Date': date_val,
+                    'Product': f'{weight}kg',
+                    'Quantity': quantity,
+                    'Unit_Price': unit_price,
+                    'Revenue': quantity * unit_price,
+                    'Channel': np.random.choice(config.SALES_CHANNELS),
+                    'Order_ID': f'ORD-{np.random.randint(100000, 999999)}'
                 })
+        
+        return pd.DataFrame(data)
     
-    return pd.DataFrame(sales_data)
-
-def generate_purchase_report(excel_service, start_date, end_date):
-    """Generate purchase report for date range"""
-    
-    # Sample data - replace with actual Excel data
-    dates = pd.date_range(start=start_date, end=end_date, freq='D')
-    purchase_data = []
-    
-    suppliers = ['Supplier A', 'Supplier B', 'Supplier C']
-    
-    for i, date in enumerate(dates):
-        if i % 5 == 0:  # Purchase every 5 days
-            purchase_data.append({
-                'Date': date.strftime('%Y-%m-%d'),
-                'Supplier': pd.np.random.choice(suppliers),
+    def get_purchase_data(self, start_date=None, end_date=None):
+        """Get purchase data for specified date range"""
+        import numpy as np
+        
+        if start_date is None:
+            start_date = date.today() - timedelta(days=30)
+        if end_date is None:
+            end_date = date.today()
+        
+        # Generate sample purchase data
+        suppliers = ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D']
+        dates = pd.date_range(start=start_date, end=end_date, freq='3D')  # Purchase every 3 days
+        
+        data = []
+        for date_val in dates:
+            quantity = np.random.randint(50, 200)
+            rate = np.random.randint(40, 65)
+            
+            data.append({
+                'Date': date_val,
+                'Supplier': np.random.choice(suppliers),
                 'Material': 'Raw Chana',
-                'Quantity_KG': pd.np.random.randint(50, 200),
-                'Rate_Per_KG': pd.np.random.randint(40, 60),
-                'Total_Amount': pd.np.random.randint(50, 200) * pd.np.random.randint(40, 60),
-                'Invoice_Number': f'INV-{pd.np.random.randint(1000, 9999)}'
+                'Quantity_KG': quantity,
+                'Rate_Per_KG': rate,
+                'Total_Amount': quantity * rate,
+                'Invoice': f'INV-{np.random.randint(1000, 9999)}'
             })
+        
+        return pd.DataFrame(data)
     
-    return pd.DataFrame(purchase_data)
+    def get_production_data(self, start_date=None, end_date=None):
+        """Get production data for specified date range"""
+        import numpy as np
+        
+        if start_date is None:
+            start_date = date.today() - timedelta(days=30)
+        if end_date is None:
+            end_date = date.today()
+        
+        # Generate sample production data
+        dates = pd.date_range(start=start_date, end=end_date, freq='D')
+        operators = ['Operator 1', 'Operator 2', 'Operator 3']
+        
+        data = []
+        for date_val in dates:
+            if np.random.random() > 0.2:  # Production on 80% of days
+                raw_material = np.random.randint(80, 150)
+                output = np.random.randint(200, 500)
+                
+                data.append({
+                    'Date': date_val,
+                    'Batch_Number': f'BATCH-{date_val.strftime("%m%d")}-{np.random.randint(1, 4)}',
+                    'Raw_Material_KG': raw_material,
+                    'Total_Output': output,
+                    'Efficiency': round((output * 0.5 / raw_material) * 100, 1),
+                    'Operator': np.random.choice(operators),
+                    'Quality_Grade': np.random.choice(['A', 'A', 'B'])
+                })
+        
+        return pd.DataFrame(data)
+    
+    # Export methods
+    
+    def create_excel_report(self, data, sheet_name):
+        """Create Excel report from data"""
+        buffer = io.BytesIO()
+        
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            data.to_excel(writer, sheet_name=sheet_name, index=False)
+            
+            # Get the workbook and worksheet
+            workbook = writer.book
+            worksheet = writer.sheets[sheet_name]
+            
+            # Auto-adjust column widths
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        buffer.seek(0)
+        return buffer.getvalue()
+    
+    def create_stock_summary_pdf(self):
+        """Create stock summary PDF report"""
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        
+        # Get styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=30,
+            alignment=1  # Center alignment
+        )
+        
+        story = []
+        
+        # Title
+        title = Paragraph("Stock Summary Report", title_style)
+        story.append(title)
+        story.append(Spacer(1, 12))
+        
+        # Date
+        date_para = Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal'])
+        story.append(date_para)
+        story.append(Spacer(1, 20))
+        
+        # Stock data table
+        stock_data = self.get_stock_data()
+        
+        # Prepare table data
+        table_data = [['Product', 'Current Stock', 'Min Stock', 'Unit Price', 'Total Value']]
+        for _, row in stock_data.iterrows():
+            table_data.append([
+                row['Product'],
+                str(row['Current_Stock']),
+                str(row['Min_Stock']),
+                f"₹{row['Unit_Price']:.2f}",
+                f"₹{row['Total_Value']:.2f}"
+            ])
+        
+        # Create table
+        table = Table(table_data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(table)
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()
+    
+    def create_financial_summary_pdf(self):
+        """Create financial summary PDF report"""
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        
+        story = []
+        
+        # Title
+        title = Paragraph("Financial Summary Report", styles['Title'])
+        story.append(title)
+        story.append(Spacer(1, 20))
+        
+        # Summary metrics
+        stock_data = self.get_stock_data()
+        sales_data = self.get_sales_data()
+        
+        total_stock_value = stock_data['Total_Value'].sum()
+        total_sales = sales_data['Revenue'].sum()
+        
+        summary_text = f"""
+        <b>Financial Overview:</b><br/>
+        • Total Stock Value: ₹{total_stock_value:,.2f}<br/>
+        • Total Sales (Last 30 Days): ₹{total_sales:,.2f}<br/>
+        • Number of Products: {len(stock_data)}<br/>
+        • Average Product Value: ₹{total_stock_value/len(stock_data):,.2f}<br/>
+        """
+        
+        summary_para = Paragraph(summary_text, styles['Normal'])
+        story.append(summary_para)
+        
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()
+    
+    def create_custom_pdf_report(self, report_type, date_range):
+        """Create custom PDF report"""
+        # For now, return a basic PDF
+        return self.create_stock_summary_pdf()
+    
+    def export_chart(self, fig, format_type):
+        """Export plotly chart in specified format"""
+        if format_type in ['png', 'jpg', 'jpeg']:
+            img_bytes = fig.to_image(format=format_type, width=800, height=600)
+            return img_bytes
+        elif format_type == 'svg':
+            img_str = fig.to_image(format='svg', width=800, height=600)
+            return img_str
+        else:
+            # Default to PNG
+            img_bytes = fig.to_image(format='png', width=800, height=600)
+            return img_bytes
 
-def generate_production_report(excel_service, start_date, end_date):
-    """Generate production report for date range"""
-    
-    # Sample data - replace with actual Excel data
-    dates = pd.date_range(start=start_date, end=end_date, freq='D')
-    production_data = []
-    
-    operators = ['Operator 1', 'Operator 2', 'Operator 3']
-    
-    for date in dates:
-        if pd.np.random.random() > 0.2:  # Production most days
-            production_data.append({
-                'Date': date.strftime('%Y-%m-%d'),
-                'Batch_Number': f'BATCH-{date.strftime("%Y%m%d")}-001',
-                'Raw_Material_Used_KG': pd.np.random.randint(80, 120),
-                'Total_Packets_Produced': pd.np.random.randint(200, 400),
-                'Operator': pd.np.random.choice(operators),
-                'Efficiency_Percent': pd.np.random.randint(85, 98),
-                'Quality_Grade': pd.np.random.choice(['A', 'B'])
-            })
-    
-    return pd.DataFrame(production_data)
+# Function to display download center (for compatibility)
+def show_download_center():
+    """Display download center interface"""
+    download_center = DownloadCenter()
+    download_center.show_download_interface()
 
-def generate_financial_summary(excel_service, start_date, end_date):
-    """Generate financial summary report"""
-    
-    # Sample data - replace with actual calculations
-    financial_data = []
-    
-    total_sales = pd.np.random.randint(50000, 100000)
-    total_purchases = pd.np.random.randint(20000, 40000)
-    
-    financial_data.append({
-        'Metric': 'Total Sales Revenue',
-        'Amount': total_sales,
-        'Period': f'{start_date} to {end_date}'
-    })
-    
-    financial_data.append({
-        'Metric': 'Total Purchase Cost',
-        'Amount': total_purchases,
-        'Period': f'{start_date} to {end_date}'
-    })
-    
-    financial_data.append({
-        'Metric': 'Gross Profit',
-        'Amount': total_sales - total_purchases,
-        'Period': f'{start_date} to {end_date}'
-    })
-    
-    return pd.DataFrame(financial_data)
+# Component functions for compatibility
+def create_excel_export_buttons():
+    """Create Excel export buttons"""
+    download_center = DownloadCenter()
+    download_center.show_excel_downloads()
 
-def generate_low_stock_report(excel_service):
-    """Generate low stock alert report"""
-    
-    # Sample data - replace with actual Excel data
-    stock_data = generate_stock_summary_report(excel_service)
-    low_stock = stock_data[stock_data['Status'] == 'Low']
-    
-    return low_stock
+def create_csv_export_buttons():
+    """Create CSV export buttons"""
+    download_center = DownloadCenter()
+    download_center.show_csv_downloads()
 
-def create_excel_report(data, report_title):
-    """Create Excel file from DataFrame"""
-    
-    output = io.BytesIO()
-    
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        data.to_excel(writer, sheet_name=report_title[:31], index=False)  # Excel sheet name limit
-    
-    output.seek(0)
-    return output.getvalue()
+def create_pdf_export_buttons():
+    """Create PDF export buttons"""
+    download_center = DownloadCenter()
+    download_center.show_pdf_downloads()
 
-def create_csv_report(data):
-    """Create CSV file from DataFrame"""
-    
-    return data.to_csv(index=False)
-
-def create_sales_template():
-    """Create sales template DataFrame"""
-    
-    return pd.DataFrame({
-        'date': ['2025-06-08'],
-        'product_weight': ['1.0'],
-        'quantity': [10],
-        'unit_price': [100],
-        'channel': ['Amazon FBA'],
-        'order_id': ['ORD-001'],
-        'customer_name': ['Customer Name (Optional)']
-    })
-
-def create_purchase_template():
-    """Create purchase template DataFrame"""
-    
-    return pd.DataFrame({
-        'date': ['2025-06-08'],
-        'supplier_name': ['Supplier Name'],
-        'material_type': ['Raw Chana'],
-        'quantity_kg': [100],
-        'rate_per_kg': [50],
-        'total_amount': [5000],
-        'invoice_number': ['INV-001'],
-        'quality_grade': ['A']
-    })
-
-def create_stock_template():
-    """Create stock template DataFrame"""
-    
-    return pd.DataFrame({
-        'product_weight': [str(w) for w in config.PRODUCT_WEIGHTS],
-        'opening_stock': [50, 100, 200, 75, 150],
-        'date': ['2025-06-08'] * len(config.PRODUCT_WEIGHTS),
-        'remarks': [''] * len(config.PRODUCT_WEIGHTS)
-    })
-
-def create_production_template():
-    """Create production template DataFrame"""
-    
-    return pd.DataFrame({
-        'date': ['2025-06-08'],
-        'batch_number': ['BATCH-001'],
-        'raw_material_used_kg': [100],
-        'product_weight': ['1.0'],
-        'packets_produced': [95],
-        'operator_name': ['Operator Name'],
-        'quality_grade': ['A'],
-        'remarks': ['']
-    })
+def create_chart_export_buttons():
+    """Create chart export buttons"""
+    download_center = DownloadCenter()
+    download_center.show_chart_downloads()

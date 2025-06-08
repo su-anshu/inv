@@ -6,6 +6,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import config
+from src.models import Product, ProductCatalog
 from src.components.data_entry_forms import (
     show_product_management, 
     show_quick_entry,

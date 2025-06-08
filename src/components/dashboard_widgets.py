@@ -110,16 +110,17 @@ def create_sales_trend_chart(sales_data):
     )
     
     # Add trend line
-    z = np.polyfit(range(len(sales_data)), sales_data['Sales'], 1)
-    p = np.poly1d(z)
-    
-    fig.add_trace(go.Scatter(
-        x=sales_data['Date'],
-        y=p(range(len(sales_data))),
-        mode='lines',
-        name='Trend',
-        line=dict(dash='dash', color='orange')
-    ))
+    if len(sales_data) > 1:
+        z = np.polyfit(range(len(sales_data)), sales_data['Sales'], 1)
+        p = np.poly1d(z)
+        
+        fig.add_trace(go.Scatter(
+            x=sales_data['Date'],
+            y=p(range(len(sales_data))),
+            mode='lines',
+            name='Trend',
+            line=dict(dash='dash', color='orange')
+        ))
     
     fig.update_layout(
         height=400,
@@ -231,7 +232,10 @@ def create_low_stock_alerts(stock_data):
     
     # Find low stock items
     low_stock = stock_data[stock_data['Current_Stock'] < stock_data['Min_Stock']]
-    critical_stock = stock_data[stock_data['Current_Stock'] < config.CRITICAL_STOCK_THRESHOLD]
+    
+    # Check for critical stock threshold
+    critical_stock_threshold = getattr(config, 'CRITICAL_STOCK_THRESHOLD', 5)
+    critical_stock = stock_data[stock_data['Current_Stock'] < critical_stock_threshold]
     
     if not critical_stock.empty:
         st.error(f"🚨 CRITICAL: {len(critical_stock)} items are critically low!")
@@ -297,7 +301,7 @@ def create_stock_value_breakdown(stock_data):
         with col2:
             st.write(f"₹{item['Value']:,}")
         with col3:
-            percentage = (item['Value'] / total_value) * 100
+            percentage = (item['Value'] / total_value) * 100 if total_value > 0 else 0
             st.write(f"{percentage:.1f}%")
     
     st.markdown(f"**Total Value: ₹{total_value:,}**")
@@ -320,30 +324,93 @@ def create_performance_summary():
         st.metric("Orders", "378", "↗️ 15%")
 
 def create_sample_stock_data():
-    """Create sample stock data for testing"""
-    
-    return pd.DataFrame({
-        'Product': [f'{w}kg' for w in config.PRODUCT_WEIGHTS],
-        'Current_Stock': [45, 120, 85, 30, 95],
-        'Min_Stock': [50, 100, 80, 40, 80],
-        'Value': [2250, 12000, 8500, 4500, 19000]
-    })
+    """Create sample stock data for testing - FIXED ARRAY LENGTHS"""
+    try:
+        # Ensure all arrays have the same length as PRODUCT_WEIGHTS
+        num_products = len(config.PRODUCT_WEIGHTS)
+        
+        # Base data - extend or trim to match num_products
+        current_stock_base = [45, 120, 85, 30, 95]
+        min_stock_base = [50, 100, 80, 40, 80]
+        value_base = [2250, 12000, 8500, 4500, 19000]
+        
+        # Ensure arrays match length
+        current_stock = (current_stock_base * ((num_products // len(current_stock_base)) + 1))[:num_products]
+        min_stock = (min_stock_base * ((num_products // len(min_stock_base)) + 1))[:num_products]
+        value = (value_base * ((num_products // len(value_base)) + 1))[:num_products]
+        
+        return pd.DataFrame({
+            'Product': [f'{w}kg' for w in config.PRODUCT_WEIGHTS],
+            'Current_Stock': current_stock,
+            'Min_Stock': min_stock,
+            'Value': value
+        })
+    except Exception as e:
+        # Fallback minimal data
+        return pd.DataFrame({
+            'Product': ['1.0kg'],
+            'Current_Stock': [100],
+            'Min_Stock': [50],
+            'Value': [5000]
+        })
 
 def create_sample_sales_data():
-    """Create sample sales data for testing"""
-    
-    dates = pd.date_range(end=datetime.now(), periods=30, freq='D')
-    return pd.DataFrame({
-        'Date': dates,
-        'Sales': np.random.randint(20, 100, 30),
-        'Revenue': np.random.randint(2000, 10000, 30)
-    })
+    """Create sample sales data for testing - FIXED ARRAY LENGTHS"""
+    try:
+        dates = pd.date_range(end=datetime.now(), periods=30, freq='D')
+        num_days = len(dates)
+        
+        return pd.DataFrame({
+            'Date': dates,
+            'Sales': np.random.randint(20, 100, num_days),
+            'Revenue': np.random.randint(2000, 10000, num_days)
+        })
+    except Exception as e:
+        # Fallback minimal data
+        return pd.DataFrame({
+            'Date': [datetime.now()],
+            'Sales': [50],
+            'Revenue': [5000]
+        })
 
 def create_sample_channel_data():
-    """Create sample channel data for testing"""
-    
-    return pd.DataFrame({
-        'Channel': config.SALES_CHANNELS,
-        'Sales': [450, 280, 320, 150],
-        'Revenue': [45000, 28000, 32000, 15000]
-    })
+    """Create sample channel data for testing - FIXED ARRAY LENGTHS"""
+    try:
+        # Use only the first few channels to ensure data matches
+        channels = config.SALES_CHANNELS[:4]  # Take first 4 channels
+        num_channels = len(channels)
+        
+        # Generate matching data
+        sales_base = [450, 280, 320, 150]
+        revenue_base = [45000, 28000, 32000, 15000]
+        
+        # Ensure arrays match channel length
+        sales = (sales_base * ((num_channels // len(sales_base)) + 1))[:num_channels]
+        revenue = (revenue_base * ((num_channels // len(revenue_base)) + 1))[:num_channels]
+        
+        return pd.DataFrame({
+            'Channel': channels,
+            'Sales': sales,
+            'Revenue': revenue
+        })
+    except Exception as e:
+        # Fallback minimal data
+        return pd.DataFrame({
+            'Channel': ['Others'],
+            'Sales': [300],
+            'Revenue': [30000]
+        })
+
+# Additional helper functions for compatibility
+
+def create_stock_sample_data():
+    """Compatibility function"""
+    return create_sample_stock_data()
+
+def create_sales_sample_data():
+    """Compatibility function"""
+    return create_sample_sales_data()
+
+def create_channel_sample_data():
+    """Compatibility function"""
+    return create_sample_channel_data()

@@ -1,0 +1,106 @@
+2025-06-08 20:11:19,154 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:12:06,332 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:13:02,686 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:13:02,696 - src.services.excel_service - ERROR - Excel file not found
+2025-06-08 20:17:14,219 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:17:14,230 - src.services.excel_service - ERROR - Excel file not found
+2025-06-08 20:17:27,754 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:19:06,797 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:19:06,833 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:19:06,892 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:19:08,398 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:19:08,431 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:19:25,813 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:19:25,854 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:19:25,893 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:20:26,344 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:20:26,416 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:20:26,458 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:27:58,052 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:27:58,085 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:27:58,130 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:29:19,542 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:29:19,586 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:29:19,639 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:29:49,558 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:29:49,626 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:29:49,666 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:31:06,972 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:31:07,006 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:31:07,051 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:31:12,579 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:31:12,626 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:31:12,686 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:37:25,473 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:37:25,553 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:37:25,594 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:37:50,768 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:37:50,847 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:37:50,893 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:38:02,474 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:38:02,512 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:38:02,560 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:41:55,374 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:41:55,467 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:41:55,509 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:43:08,602 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:43:08,678 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:43:08,719 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:44:52,714 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:44:52,789 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:44:52,832 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:49:15,507 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:49:15,581 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:49:15,622 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:54:52,472 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:54:52,548 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:54:52,592 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:54:59,790 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:54:59,834 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:54:59,903 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:54:59,943 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:54:59,992 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:01,527 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:01,573 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:01,636 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:01,681 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:01,728 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:02,169 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:02,211 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:02,269 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:02,317 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:02,373 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:03,065 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:03,107 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:03,166 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:03,206 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:03,254 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:05,776 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:05,817 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:09,007 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:09,049 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:12,570 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:12,612 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:12,666 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:16,926 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:16,969 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:17,016 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:17,127 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:18,190 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:18,234 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:18,297 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:43,520 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:43,564 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:43,619 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:45,821 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:45,862 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:45,916 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:46,759 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:46,804 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:46,851 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:46,967 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:48,472 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:48,514 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:48,558 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
+2025-06-08 20:55:50,812 - inventory_management - INFO - Application logging initialized
+2025-06-08 20:55:50,858 - src.services.excel_service - INFO - Successfully read sheet 'stock sheet' with 163 rows
