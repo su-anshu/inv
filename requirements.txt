@@ -1,0 +1,75 @@
+# Core Streamlit and Web Framework
+streamlit==1.28.1
+streamlit-option-menu==0.3.6
+streamlit-aggrid==0.3.4.post3
+
+# Excel and Data Processing
+pandas==2.1.3
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+numpy==1.24.3
+
+# Data Visualization
+plotly==5.17.0
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Database (SQLite for local storage)
+sqlite3
+
+# Date and Time Handling
+python-dateutil==2.8.2
+
+# Data Validation
+pydantic==2.5.0
+cerberus==1.3.5
+
+# File Operations
+pathlib2==2.3.7.post1
+
+# Logging
+loguru==0.7.2
+
+# Configuration Management
+python-decouple==3.8
+configparser==6.0.0
+
+# Authentication (optional, for future multi-user support)
+streamlit-authenticator==0.2.3
+
+# API Integration (for future Amazon/Flipkart integration)
+requests==2.31.0
+requests-oauthlib==1.3.1
+
+# Backup and Cloud Storage (optional)
+boto3==1.33.0  # For AWS S3 backup
+google-cloud-storage==2.10.0  # For Google Cloud backup
+
+# Development and Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.11.0
+flake8==6.1.0
+
+# Utility Libraries
+tqdm==4.66.1  # Progress bars
+schedule==1.2.0  # Task scheduling
+psutil==5.9.6  # System monitoring
+
+# Excel Advanced Features
+xlwings==0.30.12  # Advanced Excel integration (Windows/Mac only)
+
+# Data Export Formats
+fpdf2==2.7.6  # PDF generation
+reportlab==4.0.7  # Advanced PDF reports
+
+# Barcode Support (for future barcode scanning)
+python-barcode==0.15.1
+qrcode==7.4.2
+Pillow==10.1.0
+
+# Performance Monitoring
+memory-profiler==0.61.0
+
+# Environment Management
+python-dotenv==1.0.0
